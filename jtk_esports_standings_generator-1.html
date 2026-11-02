@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JTK E-SPORTS | Standings Generator</title>
+<style>
+:root{--bg:#090817;--panel:#17132f;--panel2:#211a43;--text:#f7f4ff;--muted:#aaa3c7;--gold:#ffbf19;--line:#342b5e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Noto Sans Bengali",sans-serif}
+header{padding:18px 22px;background:#100d23;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;color:#ffd04d}header small{color:var(--muted)}
+.app{display:grid;grid-template-columns:minmax(320px,430px) 1fr;min-height:calc(100vh - 65px)}
+.controls{padding:16px;border-right:1px solid var(--line);background:#100d23}
+.section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:13px}
+.section h2{font-size:14px;color:#ffd04d;margin:0 0 12px;text-transform:uppercase;letter-spacing:.7px}
+label{display:block;font-size:11px;color:var(--muted);margin:10px 0 5px}
+input,textarea,select{width:100%;background:#0c0a1c;border:1px solid #3b3265;color:white;border-radius:8px;padding:10px;font:13px Arial,sans-serif;outline:none}
+textarea{min-height:165px;resize:vertical;line-height:1.5;font-family:monospace}
+input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.designs{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.design{border:1px solid #403666;background:#211a43;color:#ddd;border-radius:8px;padding:10px 3px;font-size:11px;cursor:pointer}
+.design.active{background:var(--gold);color:#241600;font-weight:bold;border-color:#ffe28a}
+button{border:0;border-radius:8px;padding:11px 13px;font-weight:bold;cursor:pointer}
+.primary{background:linear-gradient(90deg,#ffd42b,#ff9700);color:#211600;width:100%}
+.secondary{background:#29214e;color:white;width:100%;margin-top:8px}
+.hint{font-size:11px;color:#a9a1c6;line-height:1.5}
+.preview-area{padding:22px;overflow:auto;display:flex;align-items:flex-start;justify-content:center;background:radial-gradient(ellipse at top,#1a1540,#090817 65%)}
+.preview-wrap{width:min(100%,850px)}
+.preview-label{font-size:12px;color:#b7afd5;margin-bottom:10px}
+#poster{width:100%;aspect-ratio:4/3;min-height:400px;padding:3.5%;position:relative;overflow:hidden;color:var(--ink);background:var(--paper);box-shadow:0 15px 45px #0009;display:flex;flex-direction:column;gap:2%;font-family:Arial,sans-serif}
+.poster-head{text-align:center;position:relative;z-index:1}
+.org{font-size:clamp(10px,1.4vw,17px);font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
+.event{font-size:clamp(22px,4vw,45px);font-weight:1000;line-height:1.02;text-transform:uppercase;margin-top:2%}
+.subevent{font-size:clamp(12px,2vw,21px);font-weight:bold;letter-spacing:2px;margin-top:5px}
+.week{font-size:clamp(8px,1vw,12px);margin-top:7px;opacity:.8}
+.table-title{align-self:center;font-size:clamp(10px,1.5vw,16px);font-weight:900;letter-spacing:2px;padding:8px 22px;border-radius:7px;position:relative;z-index:1}
+.table-holder{position:relative;z-index:1;flex:1;min-height:0;overflow:hidden}
+#standings{width:100%;border-collapse:collapse;font-size:clamp(8px,1.15vw,13px);text-align:center}
+#standings th{padding:9px 5px;font-size:.83em;text-transform:uppercase;letter-spacing:.5px}
+#standings td{padding:7px 5px;font-weight:700}
+#standings td.team{text-align:left;font-weight:900}
+.footer{display:flex;justify-content:space-between;align-items:end;font-size:clamp(8px,1vw,12px);font-weight:bold;position:relative;z-index:1}
+#poster .decoration{position:absolute;inset:0;pointer-events:none;opacity:.14;background-image:radial-gradient(circle at 10% 10%,currentColor 0 2px,transparent 3px),radial-gradient(circle at 90% 80%,currentColor 0 2px,transparent 3px);background-size:36px 36px}
+#poster.design1{--paper:linear-gradient(145deg,#071b31,#0b4a51 55%,#e0c77c);--ink:#fff;--accent:#ffd34e;--table:#eaffdc;--row:#d7f4c9}
+#poster.design2{--paper:linear-gradient(160deg,#d9f5ff,#fff7d9);--ink:#173b26;--accent:#226b35;--table:#f4ffe9;--row:#d9efc8}
+#poster.design3{--paper:linear-gradient(135deg,#210d45,#642c9a 60%,#150c2d);--ink:#fff;--accent:#ffcf37;--table:#21123d;--row:#38205b}
+#poster.design4{--paper:linear-gradient(135deg,#10151f,#353b49);--ink:#fff;--accent:#ff5c36;--table:#222a36;--row:#303b4b}
+#poster.design5{--paper:linear-gradient(145deg,#fff1e4,#f5b6a1);--ink:#502b28;--accent:#a83d35;--table:#fff8f0;--row:#f8ddd0}
+#poster.design6{--paper:linear-gradient(135deg,#061e35,#086a9a);--ink:#fff;--accent:#6ceaff;--table:#eafaff;--row:#cdeefa}
+#poster.design7{--paper:linear-gradient(135deg,#171717,#4d3a12);--ink:#fff4ce;--accent:#ffc928;--table:#2b2619;--row:#43391d}
+#poster.design8{--paper:linear-gradient(135deg,#f7f2ff,#d6d5ff);--ink:#29234d;--accent:#5745a4;--table:#fff;--row:#e9e5ff}
+#poster .table-title{background:var(--accent);color:#151515}
+#standings{background:var(--table);color:var(--ink);border:2px solid var(--accent)}
+#standings th{background:var(--accent);color:#151515}
+#standings tbody tr:nth-child(even){background:var(--row)}
+#standings td{border-bottom:1px solid color-mix(in srgb,var(--ink) 20%,transparent)}
+#poster.design3 #standings,#poster.design4 #standings,#poster.design7 #standings{color:white}
+#poster.design3 #standings tbody tr:nth-child(even),#poster.design4 #standings tbody tr:nth-child(even),#poster.design7 #standings tbody tr:nth-child(even){background:#ffffff18}
+#poster.design3 #standings th,#poster.design4 #standings th,#poster.design7 #standings th{color:#211600}
+@media(max-width:850px){.app{grid-template-columns:1fr}.controls{border-right:0;border-bottom:1px solid var(--line)}.preview-area{padding:14px}.preview-wrap{width:100%}#poster{min-height:320px}}
+</style>
+</head>
+<body>
+<header><h1>👑 JTK E-SPORTS — STANDINGS GENERATOR</h1><small>Live Preview • Auto Points • PNG Export</small></header>
+<div class="app">
+<aside class="controls">
+ <div class="section"><h2>01 / Design</h2><div class="designs" id="designs"></div><p class="hint">মোট ৮টি ডিজাইন থেকে পছন্দ করুন।</p></div>
+ <div class="section"><h2>02 / Event details</h2>
+  <label>Organization name</label><input id="org" value="JTK E-SPORTS ORGANISATION">
+  <div class="grid2"><div><label>Event name</label><input id="event" value="CHAMPION RUSH"></div><div><label>Sub event</label><input id="subevent" value="3 PM"></div></div>
+  <label>Week / Day text</label><input id="week" value="WEEK 00 • DAY 00">
+  <div class="grid2"><div><label>Footer left</label><input id="footleft" value="JTK E-SPORTS"></div><div><label>Footer right</label><input id="footright" value="FREE FIRE MAX"></div></div>
+ </div>
+ <div class="section"><h2>03 / Point settings</h2>
+  <label>Placement points (1st to 12th, comma separated)</label><input id="placement" value="12,9,8,7,6,5,4,3,2,1,0,0">
+  <label>Points per kill</label><input id="killpoint" type="number" min="0" value="1">
+  <p class="hint">প্রতিটি ম্যাচের Place Point + Kill Point যোগ করে Total Point অটো হিসাব হবে।</p>
+ </div>
+ <div class="section"><h2>04 / Match data input</h2>
+  <label>এক লাইনে একটি টিম: Team Name, Match 1 Position, Match 1 Kills, Match 2 Position, Match 2 Kills ...</label>
+  <textarea id="data">VX ESPORTS,1,8,3,5,2,4
+TECTON,2,6,1,5,4,2
+BOC,3,5,2,6,3,4
+TR7,4,4,5,3,1,7
+THE 4 RIVALS,5,3,4,5,2,6
+RX7,6,5,6,4,3,4
+BXR,7,4,3,6,5,3
+NoRemorse,8,3,7,4,6,5
+RTH,9,2,8,3,7,4
+THRIVE ARENA,10,3,9,2,8,4</textarea>
+  <p class="hint">উদাহরণ: <b>TEAM A,1,8,2,5</b> অর্থ Match 1-এ ১ম স্থান ও ৮ Kill, Match 2-এ ২য় স্থান ও ৫ Kill। এক ম্যাচ হলে শুধু Team, Position, Kills দিন।</p>
+  <button class="primary" id="update">↻ UPDATE / AUTO CALCULATE</button>
+  <button class="secondary" id="sample">Load sample data</button>
+ </div>
+ <div class="section"><h2>05 / Export</h2>
+  <button class="primary" id="download">⬇ DOWNLOAD PNG</button>
+  <p class="hint">PNG ডাউনলোডের জন্য ইন্টারনেট সংযোগ লাগবে (html2canvas লাইব্রেরি CDN থেকে লোড হয়)।</p>
+ </div>
+</aside>
+<main class="preview-area"><div class="preview-wrap"><div class="preview-label">● LIVE PREVIEW — পরিবর্তন করলেই আপডেট হবে</div>
+ <section id="poster" class="design2"><div class="decoration"></div>
+  <div class="poster-head"><div class="org" id="porg"></div><div class="event" id="pevent"></div><div class="subevent" id="psubevent"></div><div class="week" id="pweek"></div></div>
+  <div class="table-title">★ OVERALL STANDINGS ★</div>
+  <div class="table-holder"><table id="standings"><thead><tr><th>Rank</th><th>Team Name</th><th>Place P.</th><th>Kill P.</th><th>Total P.</th></tr></thead><tbody></tbody></table></div>
+  <div class="footer"><span id="pfootleft"></span><span id="pfootright"></span></div>
+ </section>
+ </div></main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let currentDesign=2;
+const designNames=['Ocean','Green Beach','Purple Pro','Dark Fire','Sunset','Cyber Blue','Golden Night','Lavender'];
+function makeDesignButtons(){designNames.forEach((name,i)=>{let b=document.createElement('button');b.className='design'+(i===1?' active':'');b.textContent='Design '+(i+1);b.title=name;b.onclick=()=>{currentDesign=i+1;$('poster').className='design'+currentDesign;document.querySelectorAll('.design').forEach(x=>x.classList.remove('active'));b.classList.add('active')};$('designs').appendChild(b)})}
+function parseData(){
+ const scores=$('placement').value.split(',').map(x=>Number(x.trim()));
+ const kp=Math.max(0,Number($('killpoint').value)||0);
+ const lines=$('data').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ const teams=[];
+ for(const line of lines){
+  const cells=line.split(',').map(x=>x.trim());
+  const name=cells.shift();if(!name)continue;
+  let place=0,kills=0;
+  for(let i=0;i<cells.length;i+=2){
+   const pos=Number(cells[i]),kill=Number(cells[i+1]||0);
+   if(Number.isFinite(pos)&&pos>=1&&pos<=scores.length)place+=scores[pos-1]||0;
+   if(Number.isFinite(kill)&&kill>0)kills+=kill;
+  }
+  teams.push({name,place,kills,total:place+kills*kp});
+ }
+ teams.sort((a,b)=>b.total-a.total||b.kills-a.kills||b.place-a.place||a.name.localeCompare(b.name));
+ return teams;
+}
+function update(){
+ $('porg').textContent=$('org').value;$('pevent').textContent=$('event').value;
+ $('psubevent').textContent=$('subevent').value;$('pweek').textContent=$('week').value;
+ $('pfootleft').textContent=$('footleft').value;$('pfootright').textContent=$('footright').value;
+ const tbody=$('standings').querySelector('tbody');tbody.innerHTML='';
+ try{const teams=parseData();teams.forEach((t,i)=>{const tr=document.createElement('tr');const vals=[i+1,t.name,t.place,t.kills* Math.max(0,Number($('killpoint').value)||0),t.total];vals.forEach((v,j)=>{const td=document.createElement('td');td.textContent=j===0?(['🥇','🥈','🥉'][i]||i+1):v;if(j===1)td.className='team';tr.appendChild(td)});tbody.appendChild(tr)})}
+ catch(e){console.error(e)}
+}
+['org','event','subevent','week','footleft','footright','placement','killpoint','data'].forEach(id=>$(id).addEventListener('input',update));
+$('update').onclick=update;
+$('sample').onclick=()=>{$('data').value='VX ESPORTS,1,8,3,5,2,4\nTECTON,2,6,1,5,4,2\nBOC,3,5,2,6,3,4\nTR7,4,4,5,3,1,7\nTHE 4 RIVALS,5,3,4,5,2,6\nRX7,6,5,6,4,3,4\nBXR,7,4,3,6,5,3\nNoRemorse,8,3,7,4,6,5\nRTH,9,2,8,3,7,4\nTHRIVE ARENA,10,3,9,2,8,4';update()};
+$('download').onclick=async()=>{if(!window.html2canvas){alert('PNG export library লোড হয়নি। ইন্টারনেট চালু করে পেজটি Refresh করুন।');return}
+ const btn=$('download');btn.disabled=true;btn.textContent='Creating PNG...';
+ try{const canvas=await html2canvas($('poster'),{scale:3,backgroundColor:null,useCORS:true});const a=document.createElement('a');a.download='JTK-ESPORTS-OVERALL-STANDINGS.png';a.href=canvas.toDataURL('image/png');a.click()}
+ catch(e){alert('PNG তৈরি করা যায়নি: '+e.message)}
+ finally{btn.disabled=false;btn.textContent='⬇ DOWNLOAD PNG'}
+};
+makeDesignButtons();update();
+</script>
+</body>
+</html>
