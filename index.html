@@ -28,17 +28,17 @@ button{border:0;border-radius:8px;padding:11px 13px;font-weight:bold;cursor:poin
 .preview-area{padding:22px;overflow:auto;display:flex;align-items:flex-start;justify-content:center;background:radial-gradient(ellipse at top,#1a1540,#090817 65%)}
 .preview-wrap{width:min(100%,850px)}
 .preview-label{font-size:12px;color:#b7afd5;margin-bottom:10px}
-#poster{width:100%;aspect-ratio:4/3;min-height:400px;padding:3.5%;position:relative;overflow:hidden;color:var(--ink);background:var(--paper);box-shadow:0 15px 45px #0009;display:flex;flex-direction:column;gap:2%;font-family:Arial,sans-serif}
+#poster{width:100%;aspect-ratio:4/3;min-height:560px;padding:3.5%;position:relative;overflow:hidden;color:var(--ink);background:var(--paper);box-shadow:0 15px 45px #0009;display:flex;flex-direction:column;gap:2%;font-family:Arial,sans-serif}
 .poster-head{text-align:center;position:relative;z-index:1}
 .org{font-size:clamp(10px,1.4vw,17px);font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
 .event{font-size:clamp(22px,4vw,45px);font-weight:1000;line-height:1.02;text-transform:uppercase;margin-top:2%}
 .subevent{font-size:clamp(12px,2vw,21px);font-weight:bold;letter-spacing:2px;margin-top:5px}
 .week{font-size:clamp(8px,1vw,12px);margin-top:7px;opacity:.8}
 .table-title{align-self:center;font-size:clamp(10px,1.5vw,16px);font-weight:900;letter-spacing:2px;padding:8px 22px;border-radius:7px;position:relative;z-index:1}
-.table-holder{position:relative;z-index:1;flex:1;min-height:0;overflow:hidden}
+.table-holder{position:relative;z-index:1;flex:1;min-height:0;overflow:visible}
 #standings{width:100%;border-collapse:collapse;font-size:clamp(8px,1.15vw,13px);text-align:center}
-#standings th{padding:9px 5px;font-size:.83em;text-transform:uppercase;letter-spacing:.5px}
-#standings td{padding:7px 5px;font-weight:700}
+#standings th{padding:7px 4px;font-size:.83em;text-transform:uppercase;letter-spacing:.4px;line-height:1.1}
+#standings td{padding:5px 4px;font-weight:700;line-height:1.15}
 #standings td.team{text-align:left;font-weight:900}
 .footer{display:flex;justify-content:space-between;align-items:end;font-size:clamp(8px,1vw,12px);font-weight:bold;position:relative;z-index:1}
 #poster .decoration{position:absolute;inset:0;pointer-events:none;opacity:.14;background-image:radial-gradient(circle at 10% 10%,currentColor 0 2px,transparent 3px),radial-gradient(circle at 90% 80%,currentColor 0 2px,transparent 3px);background-size:36px 36px}
@@ -58,7 +58,7 @@ button{border:0;border-radius:8px;padding:11px 13px;font-weight:bold;cursor:poin
 #poster.design3 #standings,#poster.design4 #standings,#poster.design7 #standings{color:white}
 #poster.design3 #standings tbody tr:nth-child(even),#poster.design4 #standings tbody tr:nth-child(even),#poster.design7 #standings tbody tr:nth-child(even){background:#ffffff18}
 #poster.design3 #standings th,#poster.design4 #standings th,#poster.design7 #standings th{color:#211600}
-@media(max-width:850px){.app{grid-template-columns:1fr}.controls{border-right:0;border-bottom:1px solid var(--line)}.preview-area{padding:14px}.preview-wrap{width:100%}#poster{min-height:320px}}
+@media(max-width:850px){.app{grid-template-columns:1fr}.controls{border-right:0;border-bottom:1px solid var(--line)}.preview-area{padding:14px}.preview-wrap{width:100%}#poster{min-height:560px;aspect-ratio:auto}}
 </style>
 </head>
 <body>
