@@ -6,7 +6,7 @@
 <title>JTK E-SPORTS | Standings Generator</title>
 <style>
 :root{--bg:#090817;--panel:#17132f;--panel2:#211a43;--text:#f7f4ff;--muted:#aaa3c7;--gold:#ffbf19;--line:#342b5e}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Noto Sans Bengali",sans-serif}
+[hidden]{display:none!important}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Noto Sans Bengali",sans-serif}
 header{padding:18px 22px;background:#100d23;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 header h1{font-size:20px;margin:0;color:#ffd04d}header small{color:var(--muted)}
 .app{display:grid;grid-template-columns:minmax(320px,430px) 1fr;min-height:calc(100vh - 65px)}
@@ -93,7 +93,18 @@ THRIVE ARENA,10,3,9,2,8,4</textarea>
   <button class="primary" id="update">↻ UPDATE / AUTO CALCULATE</button>
   <button class="secondary" id="sample">Load sample data</button>
  </div>
- <div class="section"><h2>05 / Export</h2>
+ <div class="section" id="ocrSection" hidden>
+  <h2>05 / Screenshot upload & OCR</h2>
+  <label>Free Fire result screenshot</label><input id="screenshotFile" type="file" accept="image/*">
+  <img id="screenshotPreview" alt="Screenshot preview" style="display:none;width:100%;max-height:260px;object-fit:contain;margin-top:10px;border-radius:8px;background:#080615">
+  <button class="primary" id="runOcr" type="button" style="margin-top:10px">SCAN SCREENSHOT WITH OCR</button>
+  <p class="hint" id="ocrStatus">ছবি আপলোড করে Scan চাপুন। OCR চালাতে ইন্টারনেট সংযোগ প্রয়োজন।</p>
+  <label>OCR detected text (প্রয়োজনে সংশোধন করুন)</label><textarea id="ocrText" placeholder="স্ক্রিনশট থেকে পাওয়া লেখা এখানে দেখাবে..." style="min-height:110px"></textarea>
+  <label>Detected team data — Apply করার আগে যাচাই/সংশোধন করুন</label><textarea id="ocrData" placeholder="TEAM A,1,8&#10;TEAM B,2,5" style="min-height:130px"></textarea>
+  <button class="primary" id="applyOcr" type="button">USE DETECTED DATA</button>
+  <p class="hint">OCR সব ধরনের Free Fire result screenshot নিখুঁতভাবে পড়তে নাও পারে। Team, Placement ও Kill নিজে যাচাই করে তারপর Use Detected Data চাপুন।</p>
+ </div>
+ <div class="section"><h2>06 / Export</h2>
   <button class="primary" id="download">⬇ DOWNLOAD PNG</button>
   <p class="hint">PNG ডাউনলোডের জন্য ইন্টারনেট সংযোগ লাগবে (html2canvas লাইব্রেরি CDN থেকে লোড হয়)।</p>
  </div>
@@ -108,6 +119,7 @@ THRIVE ARENA,10,3,9,2,8,4</textarea>
  </div></main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 let currentDesign=2;
@@ -137,18 +149,60 @@ function update(){
  $('psubevent').textContent=$('subevent').value;$('pweek').textContent=$('week').value;
  $('pfootleft').textContent=$('footleft').value;$('pfootright').textContent=$('footright').value;
  const tbody=$('standings').querySelector('tbody');tbody.innerHTML='';
- try{const teams=parseData();teams.forEach((t,i)=>{const tr=document.createElement('tr');const vals=[i+1,t.name,t.place,t.kills* Math.max(0,Number($('killpoint').value)||0),t.total];vals.forEach((v,j)=>{const td=document.createElement('td');td.textContent=j===0?(['🥇','🥈','🥉'][i]||i+1):v;if(j===1)td.className='team';tr.appendChild(td)});tbody.appendChild(tr)})}
- catch(e){console.error(e)}
+ try{
+  const teams=parseData().slice(0,12);
+  for(let i=0;i<12;i++){
+   const t=teams[i],tr=document.createElement('tr');
+   const vals=t?[i+1,t.name,t.place,t.kills*Math.max(0,Number($('killpoint').value)||0),t.total]:[i+1,'','','',''];
+   vals.forEach((v,j)=>{const td=document.createElement('td');td.textContent=j===0?(['🥇','🥈','🥉'][i]||i+1):v;if(j===1)td.className='team';tr.appendChild(td)});
+   tbody.appendChild(tr);
+  }
+ }catch(e){console.error(e)}
 }
 ['org','event','subevent','week','footleft','footright','placement','killpoint','data'].forEach(id=>$(id).addEventListener('input',update));
 $('update').onclick=update;
-$('sample').onclick=()=>{$('data').value='VX ESPORTS,1,8,3,5,2,4\nTECTON,2,6,1,5,4,2\nBOC,3,5,2,6,3,4\nTR7,4,4,5,3,1,7\nTHE 4 RIVALS,5,3,4,5,2,6\nRX7,6,5,6,4,3,4\nBXR,7,4,3,6,5,3\nNoRemorse,8,3,7,4,6,5\nRTH,9,2,8,3,7,4\nTHRIVE ARENA,10,3,9,2,8,4';update()};
+$('sample').onclick=()=>{$('data').value='VX ESPORTS,1,8,3,5,2,4\nTECTON,2,6,1,5,4,2\nBOC,3,5,2,6,3,4\nTR7,4,4,5,3,1,7\nTHE 4 RIVALS,5,3,4,5,2,6\nRX7,6,5,6,4,3,4\nBXR,7,4,3,6,5,3\nNoRemorse,8,3,7,4,6,5\nRTH,9,2,8,3,7,4\nTHRIVE ARENA,10,3,9,2,8,4';update();$('ocrSection').hidden=false;$('ocrSection').scrollIntoView({behavior:'smooth',block:'center'})};
 $('download').onclick=async()=>{if(!window.html2canvas){alert('PNG export library লোড হয়নি। ইন্টারনেট চালু করে পেজটি Refresh করুন।');return}
  const btn=$('download');btn.disabled=true;btn.textContent='Creating PNG...';
  try{const canvas=await html2canvas($('poster'),{scale:3,backgroundColor:null,useCORS:true});const a=document.createElement('a');a.download='JTK-ESPORTS-OVERALL-STANDINGS.png';a.href=canvas.toDataURL('image/png');a.click()}
  catch(e){alert('PNG তৈরি করা যায়নি: '+e.message)}
  finally{btn.disabled=false;btn.textContent='⬇ DOWNLOAD PNG'}
 };
+
+let selectedScreenshot=null;
+$('screenshotFile').addEventListener('change',e=>{
+ const file=e.target.files&&e.target.files[0];if(!file)return;
+ if(!file.type.startsWith('image/')){alert('একটি image file নির্বাচন করুন।');return}
+ selectedScreenshot=file;$('screenshotPreview').src=URL.createObjectURL(file);
+ $('screenshotPreview').style.display='block';$('ocrStatus').textContent='ছবি প্রস্তুত। এখন Scan চাপুন।';
+});
+function makeRowsFromOcr(text){
+ const rows=[];
+ for(const raw of text.split(/\r?\n/)){
+  const s=raw.replace(/[|]/g,' ').replace(/\s+/g,' ').trim();if(!s)continue;
+  let m=s.match(/^(\d{1,2})\s+(.{2,35}?)\s+(\d{1,2})$/);
+  if(m){const rank=+m[1];if(rank>=1&&rank<=12)rows.push(`${m[2]},${rank},${m[3]}`);continue}
+  m=s.match(/^(.{2,35}?)\s+(\d{1,2})\s+(\d{1,2})$/);
+  if(m){const rank=+m[2];if(rank>=1&&rank<=12)rows.push(`${m[1]},${rank},${m[3]}`)}
+ }
+ return rows.join('\n');
+}
+$('runOcr').addEventListener('click',async()=>{
+ if(!selectedScreenshot){alert('আগে screenshot আপলোড করুন।');return}
+ if(!window.Tesseract){$('ocrStatus').textContent='OCR library লোড হয়নি। ইন্টারনেট পরীক্ষা করে Refresh করুন।';return}
+ const b=$('runOcr');b.disabled=true;b.textContent='SCANNING...';
+ try{
+  const r=await Tesseract.recognize(selectedScreenshot,'eng',{logger:m=>{if(m.status==='recognizing text')$('ocrStatus').textContent='OCR চলছে: '+Math.round((m.progress||0)*100)+'%'}});
+  $('ocrText').value=r.data.text||'';$('ocrData').value=makeRowsFromOcr(r.data.text||'');
+  $('ocrStatus').textContent=$('ocrData').value?'Scan শেষ। Team Data যাচাই/সংশোধন করে Use Detected Data চাপুন।':'Scan শেষ, কিন্তু স্বয়ংক্রিয়ভাবে row শনাক্ত হয়নি। OCR text দেখে নিচে Team,Position,Kills লিখুন।';
+ }catch(err){$('ocrStatus').textContent='OCR করা যায়নি: '+(err.message||err)}
+ finally{b.disabled=false;b.textContent='SCAN SCREENSHOT WITH OCR'}
+});
+$('applyOcr').addEventListener('click',()=>{
+ const rows=$('ocrData').value.trim();if(!rows){alert('আগে Team,Position,Kills data লিখুন।');return}
+ $('data').value=rows;update();$('ocrStatus').textContent='Data points table-এ যোগ হয়েছে। Preview দেখে নিন।';
+});
+
 makeDesignButtons();update();
 </script>
 </body>
