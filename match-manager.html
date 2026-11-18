@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -7,21 +6,32 @@
 <title>JTK E-SPORTS MATCH MANAGER</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#0b1020;color:#f4f7ff;font-family:Arial,sans-serif;padding:15px}
-header{text-align:center;padding:20px 5px}
-h1{color:#40e0d0;font-size:25px;margin:0 0 8px}
+body{margin:0;background:#0b1020;color:#f4f7ff;font-family:Arial,sans-serif;padding:14px}
+header{text-align:center;padding:18px 5px}
+h1{color:#40e0d0;font-size:25px;margin:0 0 7px}
 .panel{background:#151d32;border:1px solid #34415d;border-radius:12px;padding:14px;margin:14px 0}
+h3{margin:0 0 13px;color:#40e0d0}
 .tabs{display:flex;gap:8px}
-button{background:#263653;color:white;border:0;border-radius:7px;padding:11px;cursor:pointer}
-button.active,.primary{background:#00a99d;color:#061b20;font-weight:bold}
+.tabs button{flex:1}
+button{background:#263653;color:white;border:0;border-radius:7px;padding:11px;cursor:pointer;font-weight:600}
+button.active,.primary{background:#00a99d;color:#061b20}
+button.danger{background:#9d3545;color:white}
 input,select{width:100%;padding:11px;margin:6px 0 12px;border:1px solid #465674;border-radius:7px;background:#0c1426;color:white}
 label{display:block;color:#bdc8dd;font-size:13px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .team,.entry{background:#202b43;padding:10px;border-radius:8px;margin:8px 0}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:8px;border-bottom:1px solid #34415d;text-align:left}
-.scroll{overflow-x:auto}
+.team strong{color:#40e0d0}
 .small{color:#9eacc5;font-size:12px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:420px}
+th,td{padding:9px;border-bottom:1px solid #34415d;text-align:left;white-space:nowrap}
+th{color:#40e0d0}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+.actions button{flex:1}
+#shotPreview img{max-width:100%;border-radius:8px;margin-top:10px}
+.muted{color:#9eacc5}
+.notice{background:#0c1426;border:1px solid #34415d;padding:10px;border-radius:8px;font-size:13px;line-height:1.5}
+@media(max-width:480px){body{padding:10px}.grid{grid-template-columns:1fr}.tabs{gap:5px}.tabs button{padding:10px 5px;font-size:12px}}
 </style>
 </head>
 <body>
@@ -30,49 +40,223 @@ th,td{padding:8px;border-bottom:1px solid #34415d;text-align:left}
 <div>E-SPORTS MATCH MANAGER</div>
 </header>
 
-<div class="panel">
+<section class="panel">
 <h3>Match Selection</h3>
-<div class="tabs">
+<div class="tabs" id="matchTabs">
 <button class="active" onclick="changeMatch(1)">Match 1</button>
 <button onclick="changeMatch(2)">Match 2</button>
 <button onclick="changeMatch(3)">Match 3</button>
 </div>
-<p id="matchLabel">Current Match: 1</p>
-</div>
+<p id="matchLabel" class="small">Current Match: 1</p>
+</section>
 
-<div class="panel">
-<h3>Team Details</h3>
-<label>Team Name</label><input id="teamName" placeholder="Enter team name">
-<label>Team TAG</label><input id="teamTag" placeholder="Enter team tag">
-<label>Team Logo</label><input id="teamLogo" type="file" accept="image/*">
-<button class="primary" onclick="addTeam()">Add Team</button>
+<section class="panel">
+<h3>TEAM DETAILS</h3>
+<div class="notice">সর্বোচ্চ ১২টি টিম নিবন্ধন করা যাবে। প্রত্যেক টিমের Leader এবং Player 2-এর Game Name দিতে হবে। ম্যাচে এ দুজনের যেকোনো একজন বা দুজন খেললে তাদের পয়েন্ট একই Team Name-এর অধীনে যোগ হবে।</div>
+<label>TEAM NAME</label><input id="teamName" placeholder="Enter team name">
+<label>LEADER GAME NAME</label><input id="leaderName" placeholder="Enter leader game name">
+<label>PLAYER NAME 2</label><input id="player2Name" placeholder="Enter player 2 game name">
+<div class="actions">
+<button class="primary" id="teamSaveBtn" onclick="addTeam()">ADD TEAM</button>
+<button onclick="clearTeamForm()">CLEAR</button>
+</div>
 <div id="teamSlots"></div>
-</div>
+</section>
 
-<div class="panel">
-<h3>Submission Panel</h3>
-<২abel>Screenshot Upload</২abel>
+<section class="panel">
+<h3>SUBMISSION PANEL</h3>
+<label>Screenshot Upload</label>
 <input type="file" id="screenshotUpload" accept="image/*">
-<button onclick="scanScreenshot()">Scan Screenshot</button>
+<div class="actions">
+<button onclick="pasteImage()">PASTE IMAGE</button>
+<button onclick="scanScreenshot()">SCAN SCREENSHOT</button>
+</div>
 <div id="shotPreview"></div>
-</div>Scorecard Entries</div>
+<p class="small">নোট: Screenshot আপলোড/প্রিভিউ করা যাবে। স্বয়ংক্রিয় OCR স্ক্যান এখনো যুক্ত করা হয়নি; স্কোর নিচের Entry ফর্মে দিতে হবে।</p>
+</section>
 
-Player Name 
+<section class="panel">
+<h3>SCORECARD ENTRIES</h3>
+<label>PLAYER GAME NAME</label><input id="entryPlayer" placeholder="Registered player game name">
+<div class="grid">
+<div><label>POSITION (1–12)</label><select id="entryPosition">
+<option value="">Select position</option>
+<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+<option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+<option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+</select></div>
+<div><label>KILLS</label><input id="entryKills" type="number" min="0" step="1" placeholder="0"></div>
+</div>
+<p class="small">পয়েন্ট: Placement Points + Kills (প্রতি Kill = ১ পয়েন্ট)। Player Name নিবন্ধিত না থাকলে Entry গ্রহণ করা হবে না।</p>
+<div class="actions">
+<button class="primary" onclick="addEntry()">ADD ENTRY</button>
+<button onclick="clearEntryForm()">CLEAR</button>
+</div>
+<div id="entriesList"></div>
+</section>
 
-Team Name 
+<section class="panel">
+<h3>MATCH SCOREBOARD</h3>
+<div class="scroll"><table><thead><tr><th>RANK</th><th>TEAM NAME</th><th>PLACE P.</th><th>KILL P.</th><th>TOTAL</th></tr></thead><tbody id="matchBoard"></tbody></table></div>
+</section>
 
-Team TAG 
+<section class="panel">
+<h3>OVERALL POINTS TABLE</h3>
+<div class="scroll"><table><thead><tr><th>RANK</th><th>TEAM NAME</th><th>PLACE P.</th><th>KILL P.</th><th>TOTAL</th></tr></thead><tbody id="overallBoard"></tbody></table></div>
+</section>
 
-Position 
+<section class="panel">
+<div class="actions">
+<button class="danger" onclick="clearCurrentMatch()">CLEAR CURRENT MATCH DATA</button>
+<button class="danger" onclick="resetAll()">RESET ALL DATA</button>
+</div>
+<p class="small">ডেটা এই ব্রাউজারের Local Storage-এ সেভ হয়। অন্য মোবাইল/ব্রাউজারে নিজে থেকে যাবে না। নিয়মিত Backup রাখুন।</p>
+</section>
 
-Kills 
+<script>
+const STORAGE_KEY = "jtk_match_manager_v1";
+const placementPoints = {1:12,2:9,3:8,4:7,5:6,6:5,7:4,8:3,9:2,10:1,11:0,12:0};
+let state = loadState();
+let currentMatch = 1;
+let editingTeamId = null;
+let screenshotData = "";
 
-Points 
-
-Add Entry AI Submit Auto Clear All
-
-Entries List
-
-Scoreboard
-
-
+function blankState(){return {teams:[],matches:{1:[],2:[],3:[]}}}
+function loadState(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(!saved || !Array.isArray(saved.teams) || !saved.matches) return blankState();
+    [1,2,3].forEach(n=>{if(!Array.isArray(saved.matches[n])) saved.matches[n]=[]});
+    return saved;
+  }catch(e){return blankState()}
+}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function clean(v){return String(v||"").trim()}
+function key(v){return clean(v).toLocaleLowerCase()}
+function escapeHTML(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function changeMatch(n){
+  currentMatch=n;
+  document.getElementById("matchLabel").textContent="Current Match: "+n;
+  document.querySelectorAll("#matchTabs button").forEach((b,i)=>b.classList.toggle("active",i+1===n));
+  renderAll();
+}
+function clearTeamForm(){
+  editingTeamId=null;
+  ["teamName","leaderName","player2Name"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("teamSaveBtn").textContent="ADD TEAM";
+}
+function addTeam(){
+  const name=clean(document.getElementById("teamName").value);
+  const leader=clean(document.getElementById("leaderName").value);
+  const player2=clean(document.getElementById("player2Name").value);
+  if(!name||!leader||!player2){alert("TEAM NAME, LEADER GAME NAME এবং PLAYER NAME 2 পূরণ করুন।");return}
+  const duplicateTeam=state.teams.some(t=>key(t.name)===key(name)&&t.id!==editingTeamId);
+  if(duplicateTeam){alert("এই Team Name আগে থেকেই আছে।");return}
+  const allNames=[leader,player2];
+  if(key(leader)===key(player2)){alert("দুইজন প্লেয়ারের Game Name আলাদা হতে হবে।");return}
+  const duplicatePlayer=state.teams.some(t=>t.id!==editingTeamId&&allNames.some(n=>[t.leader,t.player2].some(old=>key(old)===key(n))));
+  if(duplicatePlayer){alert("এই Player Game Name অন্য টিমে নিবন্ধিত আছে। প্রতিটি Player Name আলাদা হতে হবে।");return}
+  if(editingTeamId){
+    const t=state.teams.find(x=>x.id===editingTeamId);
+    if(t) Object.assign(t,{name,leader,player2});
+  }else{
+    if(state.teams.length>=12){alert("সর্বোচ্চ ১২টি টিম যোগ করা যাবে।");return}
+    state.teams.push({id:String(Date.now())+Math.random().toString(16).slice(2),name,leader,player2});
+  }
+  saveState();clearTeamForm();renderAll();
+}
+function editTeam(id){
+  const t=state.teams.find(x=>x.id===id);if(!t)return;
+  editingTeamId=id;
+  document.getElementById("teamName").value=t.name;
+  document.getElementById("leaderName").value=t.leader;
+  document.getElementById("player2Name").value=t.player2;
+  document.getElementById("teamSaveBtn").textContent="UPDATE TEAM";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function deleteTeam(id){
+  const t=state.teams.find(x=>x.id===id);if(!t)return;
+  if(!confirm("এই টিম এবং এর সব ম্যাচের পয়েন্ট মুছে ফেলবেন?"))return;
+  state.teams=state.teams.filter(x=>x.id!==id);
+  [1,2,3].forEach(n=>state.matches[n]=state.matches[n].filter(e=>e.teamId!==id));
+  saveState();renderAll();
+}
+function findTeamByPlayer(player){
+  const k=key(player);
+  return state.teams.find(t=>key(t.leader)===k||key(t.player2)===k);
+}
+function addEntry(){
+  const player=clean(document.getElementById("entryPlayer").value);
+  const position=Number(document.getElementById("entryPosition").value);
+  const kills=Number(document.getElementById("entryKills").value);
+  if(!player||!position||!Number.isInteger(kills)||kills<0){alert("Player Game Name, Position এবং সঠিক Kills দিন।");return}
+  const team=findTeamByPlayer(player);
+  if(!team){alert("এই Player Game Name কোনো টিমে নিবন্ধিত নেই। পয়েন্ট যোগ করা হয়নি।");return}
+  const already=state.matches[currentMatch].some(e=>key(e.player)===key(player));
+  if(already){alert("এই ম্যাচে এই Player-এর Entry আগে থেকেই আছে।");return}
+  const place=placementPoints[position]||0;
+  state.matches[currentMatch].push({id:String(Date.now())+Math.random().toString(16).slice(2),player,teamId:team.id,position,kills,place,points:place+kills});
+  saveState();clearEntryForm();renderAll();
+}
+function clearEntryForm(){
+  ["entryPlayer","entryKills"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("entryPosition").value="";
+}
+function deleteEntry(id){
+  state.matches[currentMatch]=state.matches[currentMatch].filter(e=>e.id!==id);
+  saveState();renderAll();
+}
+function totals(matchNumbers){
+  const map={};
+  state.teams.forEach(t=>map[t.id]={team:t,place:0,kills:0,total:0});
+  matchNumbers.forEach(n=>(state.matches[n]||[]).forEach(e=>{
+    if(!map[e.teamId])return;
+    map[e.teamId].place+=e.place;map[e.teamId].kills+=e.kills;map[e.teamId].total+=e.points;
+  }));
+  return Object.values(map).sort((a,b)=>b.total-a.total||b.kills-a.kills||a.team.name.localeCompare(b.team.name));
+}
+function renderAll(){
+  const slots=document.getElementById("teamSlots");
+  slots.innerHTML=state.teams.length?state.teams.map((t,i)=>`<div class="team"><strong>${i+1}. ${escapeHTML(t.name)}</strong><div class="small">LEADER: ${escapeHTML(t.leader)}<br>PLAYER 2: ${escapeHTML(t.player2)}</div><div class="actions" style="margin-top:8px"><button onclick="editTeam('${t.id}')">EDIT</button><button class="danger" onclick="deleteTeam('${t.id}')">DELETE</button></div></div>`).join(""):'<p class="small">এখনো কোনো টিম Submit করা হয়নি।</p>';
+  const entries=state.matches[currentMatch];
+  document.getElementById("entriesList").innerHTML=entries.length?entries.map(e=>{
+    const t=state.teams.find(x=>x.id===e.teamId);
+    return `<div class="entry"><strong>${escapeHTML(e.player)}</strong> <span class="muted">(${escapeHTML(t?t.name:"Team removed")})</span><div class="small">Position: ${e.position} | Kills: ${e.kills} | Place: ${e.place} | Total: ${e.points}</div><button class="danger" style="margin-top:7px" onclick="deleteEntry('${e.id}')">DELETE ENTRY</button></div>`;
+  }).join(""):'<p class="small">এই ম্যাচে এখনো কোনো Entry নেই।</p>';
+  drawBoard("matchBoard",totals([currentMatch]));
+  drawBoard("overallBoard",totals([1,2,3]));
+}
+function drawBoard(id,rows){
+  document.getElementById(id).innerHTML=rows.length?rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHTML(r.team.name)}</td><td>${r.place}</td><td>${r.kills}</td><td><strong>${r.total}</strong></td></tr>`).join(""):'<tr><td colspan="5" class="small">কোনো Team Submit করা হয়নি।</td></tr>';
+}
+function clearCurrentMatch(){
+  if(!confirm("Match "+currentMatch+" এর সব Entry মুছে ফেলবেন?"))return;
+  state.matches[currentMatch]=[];saveState();renderAll();
+}
+function resetAll(){
+  if(!confirm("সব Team এবং সব Match-এর ডেটা স্থায়ীভাবে মুছে ফেলবেন?"))return;
+  state=blankState();saveState();clearTeamForm();renderAll();
+}
+document.getElementById("screenshotUpload").addEventListener("change",e=>{
+  const file=e.target.files&&e.target.files[0];if(!file)return;
+  const reader=new FileReader();reader.onload=()=>{screenshotData=reader.result;document.getElementById("shotPreview").innerHTML=`<img src="${screenshotData}" alt="Uploaded screenshot">`};reader.readAsDataURL(file);
+});
+async function pasteImage(){
+  try{
+    if(!navigator.clipboard||!navigator.clipboard.read){alert("এই Browser-এ Paste Image সমর্থিত নয়। Screenshot Upload ব্যবহার করুন।");return}
+    const items=await navigator.clipboard.read();
+    for(const item of items){
+      const type=item.types.find(t=>t.startsWith("image/"));
+      if(type){const blob=await item.getType(type);const url=URL.createObjectURL(blob);document.getElementById("shotPreview").innerHTML=`<img src="${url}" alt="Pasted screenshot">`;return}
+    }
+    alert("Clipboard-এ কোনো Image পাওয়া যায়নি।");
+  }catch(e){alert("Paste Image অনুমতি পাওয়া যায়নি। Screenshot Upload ব্যবহার করুন।")}
+}
+function scanScreenshot(){
+  if(!document.getElementById("screenshotUpload").files.length&&!screenshotData){alert("আগে Screenshot Upload করুন বা Paste Image ব্যবহার করুন।");return}
+  alert("Screenshot Preview হয়েছে। স্বয়ংক্রিয় OCR স্ক্যান এখনো যুক্ত করা হয়নি। Player Entry ম্যানুয়ালি দিন।");
+}
+renderAll();
+</script>
+</body>
+</html>
