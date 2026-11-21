@@ -77,7 +77,9 @@ th{color:#40e0d0}
 
 <section class="panel">
 <h3>SCORECARD ENTRIES</h3>
-<label>PLAYER GAME NAME</label><input id="entryPlayer" placeholder="Registered player game name">
+<label>PLAYER GAME NAME</label><input id="entryPlayer" placeholder="Enter player game name">
+<label>TEAM NAME (শুধু নিবন্ধিত ২ জনের বাইরে অন্য Player হলে নির্বাচন করুন)</label>
+<select id="entryTeam"><option value="">Auto Detect / Select Team</option></select>
 <div class="grid">
 <div><label>POSITION (1–12)</label><select id="entryPosition">
 <option value="">Select position</option>
@@ -87,7 +89,7 @@ th{color:#40e0d0}
 </select></div>
 <div><label>KILLS</label><input id="entryKills" type="number" min="0" step="1" placeholder="0"></div>
 </div>
-<p class="small">পয়েন্ট: Placement Points + Kills (প্রতি Kill = ১ পয়েন্ট)। Player Name নিবন্ধিত না থাকলে Entry গ্রহণ করা হবে না।</p>
+<p class="small">প্রতি Player-এর Kill আলাদাভাবে যোগ হবে। একই Team-এর Placement Point শুধু প্রথম Entry-তে একবার যোগ হবে। Leader/Player 2 স্বয়ংক্রিয়ভাবে Team শনাক্ত করবে; অন্য ২ জনের Entry দিতে Team Name নির্বাচন করুন। প্রতি Kill = ১ পয়েন্ট।</p>
 <div class="actions">
 <button class="primary" onclick="addEntry()">ADD ENTRY</button>
 <button onclick="clearEntryForm()">CLEAR</button>
@@ -190,12 +192,18 @@ function addEntry(){
   const position=Number(document.getElementById("entryPosition").value);
   const kills=Number(document.getElementById("entryKills").value);
   if(!player||!position||!Number.isInteger(kills)||kills<0){alert("Player Game Name, Position এবং সঠিক Kills দিন।");return}
-  const team=findTeamByPlayer(player);
-  if(!team){alert("এই Player Game Name কোনো টিমে নিবন্ধিত নেই। পয়েন্ট যোগ করা হয়নি।");return}
+  const registeredTeam=findTeamByPlayer(player);
+  const selectedTeamId=document.getElementById("entryTeam").value;
+  const selectedTeam=state.teams.find(t=>t.id===selectedTeamId);
+  const team=registeredTeam||selectedTeam;
+  if(!team){alert("এই Player Leader/Player 2 হিসেবে নিবন্ধিত নয়। তাই সঠিক Team Name নির্বাচন করুন।");return}
+  if(registeredTeam&&selectedTeamId&&selectedTeamId!==registeredTeam.id){alert("এই Player অন্য Team-এ নিবন্ধিত। সঠিক Team নির্বাচন করুন অথবা Team নির্বাচন খালি রাখুন।");return}
   const already=state.matches[currentMatch].some(e=>key(e.player)===key(player));
   if(already){alert("এই ম্যাচে এই Player-এর Entry আগে থেকেই আছে।");return}
-  const place=placementPoints[position]||0;
-  state.matches[currentMatch].push({id:String(Date.now())+Math.random().toString(16).slice(2),player,teamId:team.id,position,kills,place,points:place+kills});
+  const teamAlreadyHasEntry=state.matches[currentMatch].some(e=>e.teamId===team.id);
+  const place=teamAlreadyHasEntry?0:(placementPoints[position]||0);
+  if(teamAlreadyHasEntry&&position){/* Placement already counted for this team; this player's kills will still be added. */}
+  state.matches[currentMatch].push({id:String(Date.now())+Math.random().toString(16).slice(2),player,teamId:team.id,position:teamAlreadyHasEntry?0:position,kills,place,points:place+kills});
   saveState();clearEntryForm();renderAll();
 }
 function clearEntryForm(){
@@ -216,6 +224,12 @@ function totals(matchNumbers){
   return Object.values(map).sort((a,b)=>b.total-a.total||b.kills-a.kills||a.team.name.localeCompare(b.team.name));
 }
 function renderAll(){
+  const teamSelect=document.getElementById("entryTeam");
+  if(teamSelect){
+    const selected=teamSelect.value;
+    teamSelect.innerHTML='<option value="">Auto Detect / Select Team</option>'+state.teams.map(t=>`<option value="${escapeHTML(t.id)}">${escapeHTML(t.name)}</option>`).join("");
+    if(state.teams.some(t=>t.id===selected)) teamSelect.value=selected;
+  }
   const slots=document.getElementById("teamSlots");
   slots.innerHTML=state.teams.length?state.teams.map((t,i)=>`<div class="team"><strong>${i+1}. ${escapeHTML(t.name)}</strong><div class="small">LEADER: ${escapeHTML(t.leader)}<br>PLAYER 2: ${escapeHTML(t.player2)}</div><div class="actions" style="margin-top:8px"><button onclick="editTeam('${t.id}')">EDIT</button><button class="danger" onclick="deleteTeam('${t.id}')">DELETE</button></div></div>`).join(""):'<p class="small">এখনো কোনো টিম Submit করা হয়নি।</p>';
   const entries=state.matches[currentMatch];
